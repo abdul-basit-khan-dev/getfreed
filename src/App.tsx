@@ -20,16 +20,18 @@ function App() {
               <Notes />
             </div>
             <div className="col-9 py-2">
-              {/* The content (Record component or other components based on the route) will be on the right side */}
-              <Routes>
-                {PublicRoutes.map((route, index) => (
-                  <Route
-                    key={index}
-                    path={route.path}
-                    element={<PublicRoute element={route.component} />}
-                  />
-                ))}
-              </Routes>
+              <div className="d-flex flex-column justify-content-center align-items-center text-center min-vh-100">
+                {/* The content (Record component or other components based on the route) will be on the right side */}
+                <Routes>
+                  {PublicRoutes.map((route, index) => (
+                    <Route
+                      key={index}
+                      path={route.path}
+                      element={<PublicRoute element={route.component} />}
+                    />
+                  ))}
+                </Routes>
+              </div>
             </div>
           </div>
         </div>

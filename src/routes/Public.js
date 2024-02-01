@@ -8,7 +8,6 @@ const PublicRoute = ({ element: Component }) => {
     return <Navigate to="/record" replace />;
   }
 
-  // Render the component if the path is not empty
   return React.createElement(Component, null);
 };
 
