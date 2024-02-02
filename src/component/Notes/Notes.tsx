@@ -13,7 +13,12 @@ export default function Notes() {
       </Link>
     </div>
     <div>
-      <NotesList/>
+      <div className="bg-info mt-3 px-1">
+        <small>The Upload Notes will display here!</small>
+      </div>
+      <div className="bg-light bg-gradient p-2 mt-3 rounded-2">
+        <NotesList/>
+      </div>
     </div>
     </>
   )

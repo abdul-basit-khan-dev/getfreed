@@ -1,60 +1,55 @@
-import React,{useState} from 'react'
-import './RealTimeAnalysis.css'
-import { HiOutlineMicrophone } from "react-icons/hi";
-import { IoPlaySharp } from "react-icons/io5";
-import { IoMdPause } from "react-icons/io";
-import ChatComponent from './ChatComponent';
-
+import React, { useState } from 'react';
+import { AudioRecorder, useAudioRecorder } from 'react-audio-voice-recorder';
+import axios from 'axios';
 
 export default function RealTimeAnalysis() {
-  const [isShow,setIsShow] = useState(false);
-  const showHide = () => {
-    setIsShow(!isShow)
-  }
+  const [transcription, setTranscription] = useState('');
+  const apiKey = process.env.REACT_APP_MY_CHATGPT_API_KEY
+  const chatgptApiKey =  process.env.REACT_APP_CHATGPT_BASE_API_KEY
+
+  const recorderControls = useAudioRecorder();
+
+  const addAudioElement = async (blob: any) => {
+    const url = URL.createObjectURL(blob);
+    const audio = document.createElement("audio");
+    audio.src = url;
+    audio.controls = true;
+
+    const formData = new FormData();
+    formData.append('file', blob, 'audio.mp3');
+    formData.append('model', 'whisper-1');
+    formData.append('model', 'whisper-1');
+
+    try {
+      const response = await axios.post(`${chatgptApiKey}/audio/transcriptions`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+      });
+
+      if (response.status === 200) {
+        setTranscription(response.data.text);
+      }
+
+    } catch (error) {
+      console.error('Error transcribing audio:', error);
+    }
+  };
+
+
   return (
     <div className='text-center'>
-      <ChatComponent/>
-      {isShow ? (<div className="paused-section">
-        <h1>Paused</h1>
-        <p>Press End Visit to generate your note, or play to continue.</p>
-        <div className="listing-btn-section d-grid gap-2 d-md-flex justify-content-center">
-          <button
-              onClick={()=>showHide()}
-              type="button"
-              className="height-50 fs-6 text btn bg-light bg-gradient btn-lg text-uppercase rounded-pill d-flex justify-content-center align-items-center"
-          >
-            <HiOutlineMicrophone className='mx-2'/>
-            END VISIT
-          </button>
-          <button className="btn bg-light bg-gradient rounded-pill px-4" type="button" onClick={()=>showHide()}><IoMdPause /></button>
-        </div>
-      </div>):(
-        <div className="listing-section">
-        <h1>Listening</h1>
-        <p>Keep this screen open while speaking to your patient.</p>
-        <div className="listing-btn-section d-grid gap-2 d-md-flex justify-content-center">
-          <button
-              onClick={()=>showHide()}
-              type="button"
-              className="height-50 fs-6 text btn bg-light bg-gradient btn-lg text-uppercase rounded-pill d-flex justify-content-center align-items-center"
-          >
-            <div className="object ms-3 me-4">
-              <div className="outline">
-              </div>
-              <div className="outline" id="delayed">
-              </div>
-              <div className="button">
-              </div>
-              <div className="button" id="circlein">
-                <HiOutlineMicrophone />
-              </div>
-            </div>
-            END VISIT
-          </button>
-          <button className="btn bg-light bg-gradient rounded-pill px-4" type="button" onClick={()=>showHide()}><IoPlaySharp /></button>
-        </div>
+      <h6>Click and start recording now!</h6>
+      <div className='d-flex justify-content-center'>
+        <AudioRecorder
+          onRecordingComplete={(blob) => addAudioElement(blob)}
+          recorderControls={recorderControls}
+        />
       </div>
-      )}
+      <div className="border border-2 mt-3 w-100 rounded-2 p-2">
+        {transcription && transcription}
+      </div>
     </div>
-  )
+  );
 }
