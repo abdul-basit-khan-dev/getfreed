@@ -113,6 +113,7 @@ export default function RealTimeAnalysis() {
         </div>
       )}
       <div className="d-flex justify-content-center my-2">
+        { transcription && transcription}
         <AudioRecorder
           onRecordingComplete={(blob) => {
             console.log('recording complete')
