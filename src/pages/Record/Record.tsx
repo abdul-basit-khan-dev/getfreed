@@ -25,7 +25,6 @@ export default function Record() {
       console.error('Error accessing microphone:', error);
     }
   };
-  console.log(Id, 'Id')
 
   return (
     <div className=''>
