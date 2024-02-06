@@ -1,77 +1,18 @@
 import React,{ useState, useEffect } from 'react'
-import axios from 'axios';
 import './RealTimeAnalysis.css'
 import { HiOutlineMicrophone } from "react-icons/hi";
 import { IoPlaySharp } from "react-icons/io5";
 import { IoMdPause } from "react-icons/io";
 import { AudioRecorder, useAudioRecorder } from 'react-audio-voice-recorder';
+import { addAudioElement } from '../../utils/addAudioElement';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 export default function RealTimeAnalysis() {
   const [transcription, setTranscription] = useState('');
-  const apiKey = process.env.REACT_APP_MY_CHATGPT_API_KEY
-  const chatgptApiKey =  process.env.REACT_APP_CHATGPT_BASE_API_KEY
   const [isLoading, setIsLoading] = useState(false);
   const recorderControls = useAudioRecorder();
-
-  const addAudioElement = async (blob: any) => {
-    const formData = new FormData();
-    formData.append('file', blob, 'audio.mp3');
-    formData.append('model', 'whisper-1');
-
-    try {
-      const voiceResponse = await axios.post(`${chatgptApiKey}/audio/transcriptions`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-      });
-
-      if (voiceResponse.status === 200) {
-        let text = voiceResponse.data.text
-        let finalFormat = `Act like "The AI Medical Scribe for Clinicians"
-        without including Patient and doctor name.
-
-        Use this conversion
-        "${text}"
-
-        just return response of below points
-
-        History of Present Illness: in Ordered list
-        Objective: in Ordered list and sub unordered list
-        Assessment & Plan: in Ordered list and sub unordered list
-        Patient Instructions: in application using format including Dear Patient Best regards,[Provider's Name] by 
-        Summary: of the provided information`
-
-        const response = await axios.post(
-          `${chatgptApiKey}/chat/completions`,
-          {
-            messages: [
-              { role: 'system', content: 'You are a helpful assistant.' },
-              { role: 'user', content: finalFormat },
-            ],
-            model: 'gpt-3.5-turbo',
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${apiKey}`,
-            },
-          }
-        );
-
-        if (response.status === 200) {
-          const data = response.data.choices[0].message.content;
-          setTranscription(data);
-        }
-        setIsLoading(false)
-        recorderControls.recordingBlob = undefined
-      }
-
-    } catch (error) {
-      console.error('Error transcribing audio:', error);
-      setIsLoading(false)
-    }
-  };
 
   const stopRecording = async (event: any) => {
     event.preventDefault();
@@ -82,13 +23,27 @@ export default function RealTimeAnalysis() {
 
   const startRecording = (event: any) => {
     recorderControls.startRecording();
+    toast('Recording started successfully!')
   };
 
+  const AddAudioElementPromise = async () => {
+    const response: any = await addAudioElement(recorderControls.recordingBlob);
 
-  useEffect(() => {
+    if (response.status === 200) {
+      const data = response.data.choices[0].message.content;
+      setTranscription(data);
+    }
+    else {
+      console.log('Error:', response.message);
+    }
+    setIsLoading(false)
+    recorderControls.recordingBlob = undefined
+  }
+
+  useEffect(()  => {
     if (!recorderControls.recordingBlob) return;
 
-    addAudioElement(recorderControls.recordingBlob);
+    AddAudioElementPromise();
   }, [recorderControls.recordingBlob])
 
   if (isLoading) {
@@ -173,6 +128,7 @@ export default function RealTimeAnalysis() {
           recorderControls={recorderControls}
           showVisualizer={true}
         />
+        <ToastContainer />
       </div>
     </div>
   )
